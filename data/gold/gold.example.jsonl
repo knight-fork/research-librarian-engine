@@ -1,0 +1,8 @@
+# Gold-standard labels for `python -m src.cli evaluate --gold data/gold/gold.jsonl`.
+# Target mix: ~50 relevant, ~30 borderline, ~50 irrelevant-but-keyword-overlapping. Lines starting with # are ignored.
+# Rows with only an identifier are resolved from trusted sources; "expect" checks metadata accuracy.
+{"doi": "10.1148/ryai.240646", "label": "relevant", "expect": {"venue_key": "radiology_ai"}}
+{"doi": "10.1148/radiol.254034", "label": "relevant", "expect": {"venue_key": "radiology"}}
+{"arxiv_id": "2505.10579", "label": "relevant"}
+{"title": "Self-supervised low-dose CT denoising with wavelet alignment", "abstract": "Self-supervised denoising of low-dose CT images.", "venue": "MICCAI", "year": 2024, "label": "borderline"}
+{"title": "A foundation model for computational pathology", "abstract": "Self-supervised pretraining on whole-slide images.", "venue": "Nature Medicine", "year": 2024, "label": "irrelevant"}

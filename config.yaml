@@ -1,0 +1,141 @@
+# zotero-tool - automated literature discovery -> Zotero.
+# Secrets live in .env / environment variables, never here.
+
+# Domain profile:
+#   general   - any field. Relevance comes from each search's / alert's own query terms.
+#   radiology - built-in CXR / CT / mammography ontology (foundation models, VLMs, uncertainty),
+#               with its own collection hierarchy and a broad scheduled `scan`.
+profile: general
+
+scan:
+  interval_days: 10
+  overlap_days: 10          # safety overlap subtracted from last_successful_scan
+  min_lookback_days: 20     # never scan a window shorter than this
+  first_run_years: 3
+  max_results_per_query: 200
+
+modalities: [cxr, ct, mammo]
+
+primary_topics:
+  - foundation-model
+  - vlm
+  - uncertainty
+  - calibration
+  - conformal-prediction
+  - ood
+  - robustness
+
+sources:
+  openalex: true
+  semantic_scholar: true
+  crossref: true       # enrichment / DOI validation only
+  pubmed: true
+  openreview: true     # needs OPENREVIEW_USERNAME/PASSWORD; skipped otherwise
+  pmlr: true
+  arxiv: true
+
+thresholds:
+  auto_add: 0.82
+  review: 0.68
+
+safety:
+  # Zotero is never modified unless this is true AND the command is run without --dry-run.
+  writes_enabled: false
+  max_auto_add_per_scan: 25
+  upgrade_preprints: true   # conservative: adds note/tag/Extra to existing preprint items, never replaces fields
+
+zotero:
+  root_collection: "Literature"     # e.g. "Radiology AI" for the radiology profile
+  auto_review_collection: "Auto Discovery - Review"
+  auto_accept_collection: "Auto Discovery - Accepted"
+  author_watch_collection: "Author Watches"
+  attach_open_access_pdf: true
+  pdf_mode: link            # link = linked-URL attachment; upload = download OA PDF and store in Zotero
+
+ranking:
+  citation_age_normalization: true
+  prefer_peer_reviewed: true
+  prefer_final_version_over_preprint: true
+  title_fuzzy_threshold: 0.96
+  high_priority_tag_score: 0.90
+
+# Only papers from these venues may be auto-added (MVP rule).
+# Everything else that clears the threshold goes to the review collection.
+high_priority_venues:
+  [neurips, icml, iclr, cvpr, iccv, eccv, miccai, midl, tpami, tmi,
+   medical_image_analysis, radiology_ai, radiology, jmlr, tnnls]
+
+# Retrieval priors only - not academic rankings.
+venue_weights:
+  neurips: 1.00
+  icml: 1.00
+  iclr: 1.00
+  cvpr: 0.98
+  iccv: 0.98
+  eccv: 0.98
+  miccai: 1.00
+  midl: 0.95
+  tpami: 1.00
+  tmi: 1.00
+  medical_image_analysis: 1.00
+  radiology_ai: 1.00
+  tnnls: 0.95
+  jmlr: 1.00
+  radiology: 1.00
+  aaai: 0.90
+  ijcai: 0.90
+  isbi: 0.85
+  # additional venues (tunable)
+  european_radiology: 0.85
+  jdi: 0.80
+  aim: 0.80
+  rsna: 0.80
+  workshop: 0.55
+  other_journal: 0.60
+  other_conference: 0.55
+  preprint: 0.40
+  unknown: 0.40
+
+# PMLR volumes to scan (volume -> venue key, year). Add new volumes as they appear.
+pmlr_volumes:
+  202: {venue: icml, year: 2023}
+  235: {venue: icml, year: 2024}
+  267: {venue: icml, year: 2025}
+  227: {venue: midl, year: 2023}
+  250: {venue: midl, year: 2024}
+  301: {venue: midl, year: 2025}
+  315: {venue: midl, year: 2026}
+
+# OpenReview venue ids to scan (requires an OpenReview login).
+openreview_venues:
+  - {id: ICLR.cc/2024/Conference, venue: iclr, year: 2024}
+  - {id: ICLR.cc/2025/Conference, venue: iclr, year: 2025}
+  - {id: ICLR.cc/2026/Conference, venue: iclr, year: 2026}
+  - {id: NeurIPS.cc/2024/Conference, venue: neurips, year: 2024}
+  - {id: NeurIPS.cc/2025/Conference, venue: neurips, year: 2025}
+
+alerts:
+  # Saved searches managed with `python -m src.cli alerts ...` (stored in alerts.yaml).
+  default_interval_days: 30   # cadence for new alerts unless one is given
+  first_run_years: 3          # backfill window for an alert's first run (unless it has `since`)
+
+llm:
+  # Optional. Deterministic rules do the work; the LLM only adds judgment where configured below.
+  enabled: true
+  provider: gemini                  # gemini (GEMINI_API_KEY) | anthropic (ANTHROPIC_API_KEY)
+  model: latest-flash-lite          # gemini: newest stable gemini-*-flash-lite, resolved at run time; or an exact id
+  anthropic_model: claude-opus-5    # used when provider: anthropic
+  tasks:
+    baselines: true                 # read Related Work + Experiments sections to classify a paper's references
+    parse_fallback: true            # interpret prompts the rule-based parser can't read
+    relevance: false                # second opinion on review-band papers in searches (can only demote)
+  max_calls_per_run: 40
+
+fulltext:
+  # Section-structured open-access full text (arXiv HTML, PubMed Central XML). Used for baseline detection.
+  enabled: true
+  max_chars: 80000                  # cap on section text sent to the LLM (~20k tokens)
+
+http:
+  cache_ttl_hours: 24
+  timeout_seconds: 30

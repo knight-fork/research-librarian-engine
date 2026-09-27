@@ -1,0 +1,34 @@
+# ---- secrets: never commit ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*secret*
+!scripts/check_secrets.py
+credentials*.json
+token*.json
+
+# ---- local state / personal data ----
+data/*
+!data/gold/
+data/gold/*
+!data/gold/gold.example.jsonl
+/reports/
+alerts.yaml
+alerts.yaml.lock
+.alerts-*.yaml
+
+# ---- environments / tooling ----
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.DS_Store
+.idea/
+.vscode/
+
+# ---- internal documents ----
+plan.md

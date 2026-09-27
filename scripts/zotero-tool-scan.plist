@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- macOS launchd job: runs daily at 07:30; scan --if-due enforces the 10-day interval.
+     Before installing, replace /ABSOLUTE/PATH/TO/zotero-tool below with this repository's path
+     (e.g.  sed -i '' "s#/ABSOLUTE/PATH/TO/zotero-tool#$(pwd)#" scripts/zotero-tool-scan.plist).
+     Install:   cp scripts/zotero-tool-scan.plist ~/Library/LaunchAgents/
+                launchctl load ~/Library/LaunchAgents/zotero-tool-scan.plist
+     Uninstall: launchctl unload ~/Library/LaunchAgents/zotero-tool-scan.plist -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>local.zotero-tool.scan</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/ABSOLUTE/PATH/TO/zotero-tool/scripts/run_scan.sh</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict><key>Hour</key><integer>7</integer><key>Minute</key><integer>30</integer></dict>
+  <key>RunAtLoad</key><false/>
+</dict>
+</plist>

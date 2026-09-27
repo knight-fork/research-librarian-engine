@@ -1,0 +1,10 @@
+# Author watchlist. Watch matches get a small relevance boost;
+# domain relevance is still required.
+authors: []
+# Example:
+#  - name: "Author Name"
+#    openalex_id: null          # optional, pins disambiguation (e.g. A5023888391)
+#    semantic_scholar_id: null  # optional
+#    topics: [foundation-model, vlm]
+#    modalities: [cxr, ct, mammo]
+#    auto_add_threshold: 0.72
