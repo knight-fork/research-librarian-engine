@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple
 from src.models import Paper
 from src.zotero.client import ZoteroClient
 
-log = logging.getLogger("zotero_tool.zotero")
+log = logging.getLogger("research_librarian.zotero")
 
 MODALITY_CHILDREN = ["CXR", "CT", "Mammography", "General Radiology"]
 HIERARCHY: Dict[str, List[str]] = {

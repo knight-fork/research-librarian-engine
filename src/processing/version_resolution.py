@@ -48,6 +48,6 @@ def preferred_version(a: Paper, b: Paper) -> Paper:
 def upgrade_note(p: Paper) -> Optional[str]:
     if not p.related_preprint_key:
         return None
-    return (f"<p><b>Published version available</b> (detected by zotero-tool)</p>"
+    return (f"<p><b>Published version available</b> (detected by research-librarian)</p>"
             f"<p>{p.title}<br/>Venue: {p.venue} {p.year or ''}<br/>DOI: "
             f"<a href=\"https://doi.org/{p.doi}\">{p.doi}</a></p>")

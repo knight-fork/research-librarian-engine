@@ -1,4 +1,4 @@
-# zotero-tool — automated literature discovery for Zotero
+# research-librarian — automated literature discovery for Zotero
 
 Keeps a Zotero library up to date with the papers you care about, in **any field**:
 
@@ -290,12 +290,12 @@ that matches goes to review. The default list covers ML, computer-vision and med
 `scripts/run_scan.sh` is meant to run daily. It runs `alerts run-due` and the author watchlist; in the radiology
 profile it also runs the broad `scan --if-due` (every 10 days). Each part decides for itself whether it's due.
 
-On macOS, first set this repository's path inside `scripts/zotero-tool-scan.plist` (the file explains how),
+On macOS, first set this repository's path inside `scripts/research-librarian-scan.plist` (the file explains how),
 then install it:
 
 ```bash
-cp scripts/zotero-tool-scan.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/zotero-tool-scan.plist
+cp scripts/research-librarian-scan.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/research-librarian-scan.plist
 ```
 
 ## Validation

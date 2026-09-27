@@ -13,7 +13,7 @@ from typing import Any, Dict, Optional, Tuple
 from src.config import CACHE_DIR, Config
 from src.http import HttpClient, HttpError
 
-log = logging.getLogger("zotero_tool.llm")
+log = logging.getLogger("research_librarian.llm")
 
 GEMINI_API = "https://generativelanguage.googleapis.com/v1beta"
 _STABLE_FLASH_LITE = re.compile(r"^models/gemini-(\d+(?:\.\d+)*)-flash-lite$")

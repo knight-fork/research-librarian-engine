@@ -15,7 +15,7 @@ EXCLUDED_TYPES = {"Editorial", "Comment", "Letter", "Published Erratum", "News",
 
 
 def _params(ctx: SourceContext, extra: Dict) -> Dict:
-    p = {"tool": "zotero-tool", **extra}
+    p = {"tool": "research-librarian", **extra}
     if ctx.cfg.secrets.ncbi_api_key:
         p["api_key"] = ctx.cfg.secrets.ncbi_api_key
     if ctx.cfg.secrets.contact_email:

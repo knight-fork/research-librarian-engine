@@ -29,7 +29,7 @@ from src.zotero import attachments, items as zitems
 from src.zotero.client import LibraryCache, ZoteroClient, ZoteroError
 from src.zotero.collections import CollectionMap, collection_names, resolve_collection, target_collections
 
-log = logging.getLogger("zotero_tool")
+log = logging.getLogger("research_librarian")
 
 S2_VENUE_NAMES = {
     "miccai": "MICCAI", "midl": "Medical Imaging with Deep Learning", "tmi": "IEEE Transactions on Medical Imaging",

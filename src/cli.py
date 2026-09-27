@@ -1,4 +1,4 @@
-"""zotero-tool command-line interface.
+"""research-librarian command-line interface.
 
     python -m src.cli search -q "graph neural networks for drug discovery" --since 2024
     python -m src.cli author --name "Author Name" -q "protein language models" --since 2023
@@ -528,7 +528,7 @@ def cmd_ask_alert(cmd: dict, text: str, cfg, args) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(prog="zotero-tool", description="Automated literature discovery -> Zotero")
+    ap = argparse.ArgumentParser(prog="research-librarian", description="Automated literature discovery -> Zotero")
     ap.add_argument("-v", "--verbose", action="store_true")
     ap.add_argument("--profile", choices=["general", "radiology"], help="override config.yaml's profile for this command")
     sub = ap.add_subparsers(dest="cmd", required=True)

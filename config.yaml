@@ -1,4 +1,4 @@
-# zotero-tool - automated literature discovery -> Zotero.
+# research-librarian - automated literature discovery -> Zotero.
 # Secrets live in .env / environment variables, never here.
 
 # Domain profile:

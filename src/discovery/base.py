@@ -8,7 +8,7 @@ from typing import List
 from src.config import Config
 from src.http import HttpClient
 
-log = logging.getLogger("zotero_tool.discovery")
+log = logging.getLogger("research_librarian.discovery")
 
 
 @dataclass

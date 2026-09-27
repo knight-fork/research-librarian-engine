@@ -31,4 +31,4 @@ __pycache__/
 .vscode/
 
 # ---- internal documents ----
-plan.md
+/plan*.md

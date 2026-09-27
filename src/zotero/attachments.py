@@ -12,7 +12,7 @@ from src.http import HttpClient, HttpError
 from src.models import Paper
 from src.zotero.client import ZoteroClient
 
-log = logging.getLogger("zotero_tool.zotero")
+log = logging.getLogger("research_librarian.zotero")
 
 # Priority: official OA -> arXiv -> PubMed Central -> proceedings.
 PRIORITY = ("official_oa", "arxiv", "pmc", "proceedings")

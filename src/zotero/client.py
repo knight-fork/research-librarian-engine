@@ -11,7 +11,7 @@ from src import config as _config
 from src.config import Secrets
 from src.http import HttpClient, HttpError
 
-log = logging.getLogger("zotero_tool.zotero")
+log = logging.getLogger("research_librarian.zotero")
 API = "https://api.zotero.org"
 
 

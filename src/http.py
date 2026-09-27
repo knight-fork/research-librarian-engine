@@ -17,7 +17,7 @@ import requests  # noqa: E402
 
 log = logging.getLogger(__name__)
 
-USER_AGENT = "zotero-tool/0.1 (personal literature curator)"
+USER_AGENT = "research-librarian/0.1 (personal literature curator)"
 
 # Minimum seconds between requests to a host.
 HOST_INTERVALS = {

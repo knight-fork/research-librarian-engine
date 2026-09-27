@@ -74,7 +74,7 @@ def provenance_note(p: Paper, today: Optional[date] = None) -> str:
     today = today or date.today()
     b = p.score_breakdown or {}
     rows = [
-        "Auto-discovered by zotero-tool.",
+        "Auto-discovered by research-librarian.",
         f"Reason: {p.discovery_reason or '-'}",
         f"Source: {', '.join(p.sources) or p.source}",
         f"Discovery query: {'; '.join(p.queries[:5]) or '-'}",
