@@ -85,7 +85,11 @@ class CollectionMap:
     def ensure(self, relpath: str) -> Optional[str]:
         """Return the key for root/relpath, creating missing levels. In dry-run every missing level is
         recorded in `planned` (in creation order) and None is returned."""
-        parts = [self.root] + split_path(relpath)
+        return self.ensure_path("/".join([self.root] + split_path(relpath)))
+
+    def ensure_path(self, full_path: str) -> Optional[str]:
+        """Like ensure(), but for a path from the library's top level (e.g. an existing 'Mammo' collection)."""
+        parts = split_path(full_path)
         parent: Optional[str] = None
         path = ""
         missing = False

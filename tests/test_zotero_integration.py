@@ -134,3 +134,43 @@ def test_dry_run_writes_nothing(pipe):
     pipe.zotero.dry_run = True
     r = pipe.run(_req(), raw=_papers())
     assert r.by_decision("accept") and not pipe.zotero.items_db
+
+
+def test_target_collection_files_new_and_existing(pipe):
+    z = pipe.zotero
+    first = pipe.run(_req(), raw=_papers())            # accepted paper now exists in the library
+    assert first.written["accept"]
+    req = SearchRequest(intent="scan", source_tag="auto-discovery", strict_request_match=False, target_collection="Mammo/Selected")
+    r = pipe.run(req, raw=_papers())
+    target = next(k for k, c in z.collections_db.items() if c["name"] == "Selected")
+    parent = z.collections_db[target]["parentCollection"]
+    assert z.collections_db[parent]["name"] == "Mammo" and not z.collections_db[parent]["parentCollection"]  # top level
+    existing_key = first.written["accept"][0]
+    assert target in z.items_db[existing_key]["collections"] and r.written.get("filed") == [existing_key]
+
+
+def test_cli_parser_builds_and_profile_override():
+    from src.cli import build_parser
+    ap = build_parser()
+    args = ap.parse_args(["--profile", "radiology", "search", "--topic", "vlm", "--collection", "Mammo", "--dry-run"])
+    assert args.profile == "radiology" and args.collection == "Mammo"
+    assert ap.parse_args(["gaps", "--collection", "Mammo"]).collection == "Mammo"
+
+
+def test_target_collection_files_kept_preprint_but_not_pending_review(pipe):
+    z = pipe.zotero
+    kept = z.create_items([{"itemType": "preprint", "title": "Conformal prediction for CT triage with foundation models",
+                            "archiveID": "arXiv:2501.01234", "url": "https://arxiv.org/abs/2501.01234", "DOI": "", "extra": "",
+                            "tags": [], "collections": []}])[0]
+    pending = z.create_items([{"itemType": "journalArticle", "title": "Calibrated vision-language foundation model for chest X-ray report generation",
+                               "DOI": "10.1007/978-3-032-00000-0_1", "tags": [{"tag": "status:review-required"}], "collections": []}])[0]
+    pub = finalize(Paper(title="Conformal prediction for CT triage with foundation models",
+                         abstract="Conformal prediction sets over a CT foundation model for chest CT scans triage.",
+                         doi="10.1109/tmi.2026.1234567", arxiv_id="2501.01234", venue="IEEE Transactions on Medical Imaging",
+                         venue_type="journal", publication_date="2026-07-01", source="crossref"))
+    req = SearchRequest(intent="scan", source_tag="auto-discovery", strict_request_match=False, target_collection="CT")
+    r = pipe.run(req, raw=[pub, _papers()[0]])
+    target = next(k for k, c in z.collections_db.items() if c["name"] == "CT")
+    assert target in z.items_db[kept]["collections"]            # published version found -> your preprint is filed
+    assert target not in z.items_db[pending]["collections"]     # still pending review -> not promoted
+    assert kept in r.written.get("filed", [])

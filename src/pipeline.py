@@ -344,16 +344,25 @@ class Pipeline:
         names = collection_names(self.cfg)
         if self.dry_run:
             for p in to_write:
+                if req.target_collection and p.decision == "accept":
+                    self.collections.ensure_path(req.target_collection)
+                    continue
                 for path in target_collections(p, p.decision, req.source_tag, names, label=req.label, profile=self.cfg.profile):
                     self.collections.ensure(path)
+            if req.target_collection:
+                n = sum(1 for p in result.existing + result.upgrades if p.decision in ("accept", "review"))
+                result.notes.append(f"Would also file up to {n} matching paper(s) you already keep into '{req.target_collection}'.")
             return
         created: List[Dict[str, Any]] = []
         payloads, notes_for = [], []
         try:
             self.collections.ensure("")
             for p in to_write:
-                paths = target_collections(p, p.decision, req.source_tag, names, label=req.label, profile=self.cfg.profile)
-                keys = [k for k in (self.collections.ensure(path) for path in paths) if k]
+                if req.target_collection and p.decision == "accept":
+                    keys = [k for k in [self.collections.ensure_path(req.target_collection)] if k]
+                else:
+                    paths = target_collections(p, p.decision, req.source_tag, names, label=req.label, profile=self.cfg.profile)
+                    keys = [k for k in (self.collections.ensure(path) for path in paths) if k]
                 tags = zitems.build_tags(p, p.decision, req.source_tag, float(self.cfg.get("ranking.high_priority_tag_score", 0.9)))
                 tags += [t for t in req.extra_tags + p.extra_tags if t not in tags]
                 payloads.append(zitems.to_zotero_item(p, keys, tags))
@@ -395,12 +404,41 @@ class Pipeline:
                     except (HttpError, ZoteroError, KeyError) as exc:
                         result.errors.append(f"PDF attach failed for {p.title[:60]}: {exc}")
         LibraryCache(self.zotero).remember(created)
+        if req.target_collection:
+            self._file_existing(result, req.target_collection)
         if self.cfg.get("safety.upgrade_preprints", True):
             for p in result.upgrades:
                 try:
                     self._upgrade_preprint(p, result)
                 except (HttpError, ZoteroError) as exc:
                     result.errors.append(f"preprint annotation failed for {p.related_preprint_key}: {exc}")
+
+    def _file_existing(self, result: RunResult, target: str) -> None:
+        """Papers you already keep that match the request (accept or review band, including preprints whose
+        published version was just found) are also filed into the target collection. Items still waiting in
+        this tool's review queue are not promoted this way."""
+        key = self.collections.ensure_path(target)
+        if not key:
+            return
+        review_key = self.collections.paths.get(f"{self.collections.root}/{collection_names(self.cfg)['review']}")
+        for p in result.existing + result.upgrades:
+            zkey = p.related_preprint_key or p.existing_zotero_key
+            if p.decision not in ("accept", "review") or not zkey:
+                continue
+            try:
+                item = self.zotero.item(zkey)
+            except HttpError:
+                continue
+            data = item["data"]
+            cols = data.get("collections", [])
+            tags = {t["tag"] for t in data.get("tags", [])}
+            if data.get("deleted") or data.get("parentItem") or key in cols:
+                continue  # never touch items in the trash
+            if "status:review-required" in tags or (review_key and review_key in cols):
+                continue  # still pending review: don't promote it
+            if self.zotero.patch_item(zkey, item["version"], {"collections": cols + [key]}):
+                result.written.setdefault("filed", []).append(zkey)
+                self._audit("file_existing", p, zkey, result.request)
 
     def _upgrade_preprint(self, p: Paper, result: RunResult) -> None:
         """Conservative: annotate the existing preprint (Extra line, tag, note). Never replaces fields."""
@@ -411,6 +449,8 @@ class Pipeline:
             result.errors.append(f"could not load preprint {key}: {exc}")
             return
         data = item["data"]
+        if data.get("deleted"):
+            return  # the preprint is in the trash: leave it alone
         extra = data.get("extra") or ""
         if p.doi and p.doi in extra.lower():
             return  # already annotated

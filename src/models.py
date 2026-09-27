@@ -122,6 +122,7 @@ class SearchRequest:
     extra_tags: List[str] = field(default_factory=list)  # added to every Zotero item written (e.g. "alert:<id>")
     label: Optional[str] = None          # human-readable run name for reports (e.g. the alert name)
     include_seed: bool = False           # baselines: also add the seed paper itself
+    target_collection: Optional[str] = None  # file accepted papers into this collection path (from the library root)
     parse_notes: List[str] = field(default_factory=list)  # how a prompt was interpreted (typo fixes, ambiguities)
 
     def to_dict(self) -> Dict[str, Any]:

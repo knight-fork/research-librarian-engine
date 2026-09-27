@@ -75,6 +75,9 @@ def summarize(result: RunResult, path) -> None:
         print(f"  [UPGRADE] {p.title[:90]} -> {p.venue_key} {p.year}, DOI {p.doi} (annotates Zotero item {p.related_preprint_key})")
     for p in result.existing[:5]:
         print(f"  [EXISTS ] {p.title[:90]} (Zotero item {p.existing_zotero_key}, matched by {p.duplicate_of})")
+    filed = result.written.get("filed") or []
+    if filed:
+        print(f"  filed {len(filed)} matching paper(s) you already keep into '{result.request.target_collection}'")
     for p in acc[:15]:
         print(f"  [ACCEPT {p.final_score:.2f}] {p.title[:100]}  ({p.venue_key} {p.year})")
     for p in rev[:15]:
@@ -133,7 +136,7 @@ def cmd_scan(args, cfg) -> int:
 def cmd_search(args, cfg) -> int:
     req = SearchRequest(intent="topic_search", topics=_topics(args.topic), modalities=_modalities(args.modality),
                         date_from=_since(args), venues=_venues(args.venue), top_venues_only=args.top_venues,
-                        limit=args.limit, free_text=args.query or args.text,
+                        limit=args.limit, free_text=args.query or args.text, target_collection=args.collection,
                         action="report_only" if args.report_only else "add_by_threshold")
     if not cfg.is_radiology and not req.free_text:
         req.free_text = " ".join((args.topic or []) + (args.modality or [])) or None
@@ -150,6 +153,7 @@ def cmd_venue(args, cfg) -> int:
     date_to = f"{args.year}-12-31" if args.year else None
     req = SearchRequest(intent="venue_search", topics=_topics(args.topic), modalities=_modalities(args.modality),
                         venues=_venues(args.venue), date_from=date_from, date_to=date_to, limit=args.limit,
+                        target_collection=args.collection,
                         free_text=args.query or (None if cfg.is_radiology else " ".join((args.topic or []) + (args.modality or [])) or None),
                         action="report_only" if args.report_only else "add_by_threshold")
     pipe = Pipeline(cfg, dry_run=args.dry_run)
@@ -161,6 +165,7 @@ def cmd_venue(args, cfg) -> int:
 def cmd_author(args, cfg) -> int:
     req = SearchRequest(intent="author_search", author=args.name, topics=_topics(args.topic), modalities=_modalities(args.modality),
                         date_from=_since(args), author_openalex_id=args.openalex_id, author_s2_id=args.s2_id,
+                        target_collection=args.collection,
                         free_text=args.query or (None if cfg.is_radiology else " ".join((args.topic or []) + (args.modality or [])) or None),
                         source_tag="author-watch", limit=args.limit,
                         action="report_only" if args.report_only else "add_by_threshold")
@@ -216,6 +221,7 @@ def cmd_expand(args, cfg, intent: str) -> int:
 
 def cmd_baselines(args, cfg) -> int:
     req = SearchRequest(intent="baselines", seed=args.seed, include_seed=args.include_seed, limit=args.limit,
+                        target_collection=args.collection,
                         strict_request_match=False, action="report_only" if args.report_only else "add_by_threshold")
     pipe = Pipeline(cfg, dry_run=args.dry_run)
     result = pipe.baselines(req)
@@ -524,10 +530,14 @@ def cmd_ask_alert(cmd: dict, text: str, cfg, args) -> int:
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="zotero-tool", description="Automated literature discovery -> Zotero")
     ap.add_argument("-v", "--verbose", action="store_true")
+    ap.add_argument("--profile", choices=["general", "radiology"], help="override config.yaml's profile for this command")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     def common(p, topic=True):
         p.add_argument("--dry-run", action="store_true", help="discover and rank without changing Zotero")
+        if p.prog.split()[-1] != "gaps":  # gaps uses --collection for the collection it analyses
+            p.add_argument("--collection", help="file accepted papers into this collection, from the library's top level "
+                                                "(e.g. 'Mammo' or 'CXR/Longitudinal'); created if missing")
         if topic and p.prog.split()[-1] in ("venue", "author", "similar", "citations", "related", "gaps"):
             p.add_argument("--query", "-q", help="what the papers should be about (general profile)")
         p.add_argument("--report-only", action="store_true", help="never write, even when writes are enabled")
@@ -591,6 +601,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("baselines", help="find (and optionally add) the baseline papers a paper compares against")
     p.add_argument("--seed", required=True, help="DOI, arXiv id, Zotero item key, or title of the paper")
     p.add_argument("--include-seed", action="store_true", help="also add the paper itself")
+    p.add_argument("--collection", help="file accepted baselines into this collection (from the library's top level)")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--report-only", action="store_true")
     p.add_argument("--limit", type=int)
@@ -678,6 +689,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     cfg = load_config()
+    if args.profile:
+        cfg.raw["profile"] = args.profile
     try:
         return args.fn(args, cfg)
     except ZoteroError as exc:

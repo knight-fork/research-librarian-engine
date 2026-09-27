@@ -215,6 +215,23 @@ full text nor citation contexts, nothing is proposed.
 
 `--dry-run` previews any command. `--report-only` never writes, even with writes enabled.
 
+**Filing into your own collections.** Pass `--collection` to `search`, `venue`, `author` or `baselines`:
+
+```bash
+python -m src.cli search -q '("chest x-ray" OR CXR) AND ("vision-language" OR "report generation") AND (longitudinal OR "prior study" OR temporal)' \
+       --collection "CXR/Longitudinal VLMs (prior studies)"
+```
+
+* Accepted papers go into that collection, a path from your library's top level such as `Mammo` or `CXR/Longitudinal`. It is created if missing.
+* Matching papers you **already keep** are filed there too. That includes a preprint whose published version was just found.
+* Borderline papers still go to the review collection, and items waiting for review are never promoted this way.
+
+**One-off profile.** `--profile radiology` (or `general`) overrides `config.yaml` for a single command, e.g.
+`python -m src.cli --profile radiology search --topic "foundation models" --modality mammo --since 2025 --collection Mammo`.
+
+**Query tip.** A bare word like "prior" also matches phrases such as "prior work" and "prior knowledge". To mean
+prior *studies*, use phrases: `"prior study"`, `"prior report"`, `"previous exam"`, `longitudinal`, `temporal`.
+
 **How prompts are understood.** A deterministic parser turns the prompt into a search request:
 
 * It extracts the subject ("papers on **X** since 2024"), plus author, venue, dates and intent.

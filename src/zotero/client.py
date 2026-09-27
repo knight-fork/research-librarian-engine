@@ -68,6 +68,10 @@ class ZoteroClient:
     def collections(self) -> List[Dict[str, Any]]:
         return self._get_all("/collections")
 
+    def live_items_top(self) -> List[Dict[str, Any]]:
+        """Top-level items excluding the trash (use this for organizing / listing)."""
+        return [it for it in self.items_top() if not it["data"].get("deleted")]
+
     def items_top(self, since: Optional[int] = None) -> List[Dict[str, Any]]:
         # includeTrashed so incremental syncs see items moved to the trash (data.deleted) and drop them.
         params: Dict[str, Any] = {"include": "data", "includeTrashed": 1}
@@ -76,6 +80,7 @@ class ZoteroClient:
         return self._get_all("/items/top", params)
 
     def item(self, key: str) -> Dict[str, Any]:
+        """One item (may be in the trash: check data['deleted'] before editing it)."""
         return self._get(f"/items/{key}").json()
 
     def children(self, key: str) -> List[Dict[str, Any]]:
