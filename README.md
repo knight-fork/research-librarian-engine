@@ -1,4 +1,7 @@
-# research-librarian — automated literature discovery for Zotero
+# research-librarian-engine — automated literature discovery for Zotero
+
+> The discovery and curation engine behind **research-librarian**, a Claude integration for Zotero that is in
+> development. This repository is the standalone command-line version.
 
 Keeps a Zotero library up to date with the papers you care about, in **any field**:
 
@@ -329,3 +332,7 @@ tests/                unit tests + fake-Zotero integration tests: .venv/bin/pyth
 * The general profile matches the words you write. Add synonyms with `OR`, e.g. `(LLM OR "large language model")`.
 * New PMLR volumes must be added to `pmlr_volumes` in `config.yaml`.
 * API keys are redacted from every error message, log line and report.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
