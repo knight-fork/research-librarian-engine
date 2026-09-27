@@ -25,9 +25,13 @@ ALLOW_FILES = {"scripts/check_secrets.py"}  # contains the patterns themselves
 
 
 def env_values():
-    env = ROOT / ".env"
+    """Values from this repo's .env plus any files in CHECK_SECRETS_ENV_FILES (colon-separated paths)."""
+    import os
+    files = [ROOT / ".env"] + [Path(x).expanduser() for x in os.environ.get("CHECK_SECRETS_ENV_FILES", "").split(":") if x]
     vals = {}
-    if env.exists():
+    for env in files:
+        if not env.exists():
+            continue
         for line in env.read_text().splitlines():
             m = re.match(r"\s*([A-Z0-9_]+)\s*=\s*(.*)$", line)
             if m:
